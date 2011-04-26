@@ -1,0 +1,4 @@
+A simple Arduino program of my own invention that counts in Binary
+from 0-255 using 8 LEDS
+
+Circuit (**not** of my own invention) is at http://www.oomlout.com/a/products/ardx/circ-02

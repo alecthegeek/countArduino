@@ -4,7 +4,8 @@
  Turns on a row of LED on, then off repeatedly while counting in binary
  
  The circuit:
- 
+
+http://www.oomlout.com/a/products/ardx/circ-02 
  
  Created Oct 2010
  By Alec Clews
