@@ -3,9 +3,7 @@
  
  Turns on a row of LED on, then off repeatedly while counting in binary
  
- The circuit:
-
-http://www.oomlout.com/a/products/ardx/circ-02 
+ The circuit: http://www.oomlout.com/a/products/ardx/circ-02 
  
  Created Oct 2010
  By Alec Clews
@@ -13,51 +11,74 @@ http://www.oomlout.com/a/products/ardx/circ-02
 
 #include <WProgram.h>
 
-#define max_LED  7 // How many LEDS (digits) in our binary number
-#define delayTime 500 // 1/2 seconds
-#define  LEDBASE 2;  // First line for led array
+#define MAX_LED  8 // How many LEDS (digits) in our binary readout
+#define MAX_VALUE  pow(2,MAX_LED)
+#define DELAYTIME 200
+#define  LEDBASE 2  // First line for led array
 
-int leds[max_LED]; // The lines for each led
-int ledState[max_LED]; // The lines for each led
+typedef int led_state;
 
-void inc(const int *linesToToggle)
+// A LED is a) attached to a PIN output and b) is off or on
+typedef struct {int pinno; led_state state;} led_data_type;
+
+inline led_data_type *flip(led_data_type *led,led_state to_state)
 {
-  for (int i=0; i<max_LED; i++)
-  {
-    if (0 == ledState[i])
-    {
-      digitalWrite(linesToToggle[i],HIGH);
-      ledState[i] = 1;
-      return;
-    } 
-    else
-    {
-      digitalWrite(linesToToggle[i],LOW);
-      ledState[i] = 0;
-    }
-  } 
+	led->state = to_state;
+	digitalWrite(led->pinno,led->state);
+#ifdef DEBUG
+	Serial.print("FLipped LED on pin ");
+	Serial.print(led->pinno);
+	Serial.println(led->state ? " to HIGH":" to LOW");
+#endif
+	return led;
 }
+
+// Future use
+inline led_data_type *toggle(led_data_type *led) { return flip(led, (LOW == led->state ? HIGH:LOW));}
+
+// Increment a string of LED to the next binary number
+void inc(led_data_type led[MAX_LED])
+{
+  for (int i=0; i < MAX_LED; i++)
+    if (LOW == led[i].state)
+    {
+	flip(&(led[i]),HIGH);
+	return;
+    }
+    else 
+	flip(&(led[i]),LOW);
+}
+
+led_data_type leds[MAX_LED]; // The leds for our readout
 
 // the loop() method runs over and over again,
 // as long as the Arduino has power
 void  loop(void)
 {
-  for (int i = 0 ; i<= (pow(2,max_LED)); i++)
+  for (int i = 1 ; i< MAX_VALUE; i++) {
 	  inc(leds);
-  delay(delayTime);
+#ifdef DEBUG
+	  Serial.print("LED should display value");
+	  Serial.println(i);
+#endif
+          delay(DELAYTIME);
+  }
+  delay(DELAYTIME);
+  Serial.println("In loop");
 }
 
-
-// The setup() method runs once, when the sketch starts
+// The setup() method runs once, when the program starts
 void setup(void)
 {                
   // initialize the digital pin as an output:
-  // pinMode(ledPin, OUTPUT);     
-  for (int i=0; i<max_LED; i++)
-  {
-     leds[i] = i + LEDBASE;
-     ledState[i] = 0;
-     pinMode(leds[i], OUTPUT);     
-     digitalWrite(leds[i], LOW);
+  for (int i=0; i<MAX_LED; i++) {
+     leds[i].pinno = i + LEDBASE;  // Using Pins 2-9
+     pinMode(leds[i].pinno, OUTPUT);     
+     flip(&(leds[i]),LOW);
   }
+#ifdef DEBUG
+  Serial.begin(AVRDUDE_ARD_BAUDRATE);
+  Serial.println("In setup");
+#endif
 }
+
